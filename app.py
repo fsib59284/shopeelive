@@ -6,7 +6,7 @@ import time
 
 running = False
 # Judul Aplikasi
-st.title("Form Input dengan Streamlit")
+st.title("Spampam / Didin Wahyudin")
 
 # Entry untuk memasukkan data
 session = st.text_input("Masukkan Session:")
