@@ -1,9 +1,12 @@
+import threading
+
 import streamlit as st
 import requests
 import time
 
+running = False
 # Judul Aplikasi
-st.title("Spampam / Didin wahyudin")
+st.title("Form Input dengan Streamlit")
 
 # Entry untuk memasukkan data
 session = st.text_input("Masukkan Session:")
@@ -120,44 +123,46 @@ def send_buy(session_id, cookies):
     except Exception as e:
         return f"Error: {e}"
 
-# Fungsi untuk menjalankan semua aksi dengan log dinamis tanpa merubah fungsi def atau header
-if st.button("Start"):
-    log_area = st.empty()  # Membuat area log dinamis yang diperbarui
 
-    if session and shopid and userig and uuid and pesan and url_raw_github:
-        cookies_list = load_cookies_from_github(url_raw_github)
-        if cookies_list:
-            log_area.write(f"{len(cookies_list)} cookies berhasil dimuat!")
+# Fungsi untuk menjalankan looping selamanya di background
+def start_loop():
+    global running
+    running = True
+    cookies_list = load_cookies_from_github(url_raw_github)
 
-            # Looping Selamanya
-            while True:
-                for index, cookie in enumerate(cookies_list):
-                    cookie_list = [cookie]
+    if cookies_list:
+        while running:
+            for index, cookie in enumerate(cookies_list):
+                cookie_list = [cookie]
 
-                    # Mengirim Like dengan log dinamis
-                    log_area.text(f"Mengirim Like... ({index + 1}/{len(cookies_list)})")
-                    response_like = send_like(session, cookie_list, like_cnt)
-                    log_area.text(f"Respons Like: {response_like}")
+                # Mengirim Like dengan log dinamis
+                print(f"Mengirim Like... ({index + 1}/{len(cookies_list)})")
+                send_like(session, cookie_list, like_cnt)
 
-                    # Mengirim Pesan dengan log dinamis
-                    log_area.text(f"Mengirim Pesan... ({index + 1}/{len(cookies_list)})")
-                    response_message = send_message(session, cookie_list, uuid, userig, pesan)
-                    log_area.text(f"Respons Pesan: {response_message}")
+                # Mengirim Pesan dengan log dinamis
+                print(f"Mengirim Pesan... ({index + 1}/{len(cookies_list)})")
+                send_message(session, cookie_list, uuid, userig, pesan)
 
-                    # Mengirim Follow dengan log dinamis
-                    log_area.text(f"Mengirim Follow... ({index + 1}/{len(cookies_list)})")
-                    response_follow = send_follow(session, shopid, cookie_list)
-                    log_area.text(f"Respons Follow: {response_follow}")
+                # Mengirim Follow dengan log dinamis
+                print(f"Mengirim Follow... ({index + 1}/{len(cookies_list)})")
+                send_follow(session, shopid, cookie_list)
 
-                    # Mengirim Buy dengan log dinamis
-                    log_area.text(f"Mengirim Buy... ({index + 1}/{len(cookies_list)})")
-                    response_buy = send_buy(session, cookie_list)
-                    log_area.text(f"Respons Buy: {response_buy}")
+                # Mengirim Buy dengan log dinamis
+                print(f"Mengirim Buy... ({index + 1}/{len(cookies_list)})")
+                send_buy(session, cookie_list)
 
-                    # Jeda antar aksi
-                    time.sleep(delay_between_actions)
-
-        else:
-            log_area.error("❌ Gagal memuat cookies, pastikan URL Raw GitHub benar.")
+                # Jeda antar aksi
+                time.sleep(delay_between_actions)
     else:
-        log_area.error("⚠️ Harap isi semua kolom dengan benar!")
+        print("❌ Gagal memuat cookies, pastikan URL Raw GitHub benar.")
+
+
+
+col1, col2 = st.columns(2)
+
+with col1:
+    if st.button("Start"):
+        if not running:
+            threading.Thread(target=start_loop, daemon=True).start()
+            st.success("Looping di background dimulai! Aplikasi akan tetap berjalan.")
+
