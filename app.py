@@ -3,7 +3,7 @@ import requests
 import time
 
 # Judul Aplikasi
-st.title("Form Input dengan Streamlit")
+st.title("Spampam / Didin wahyudin")
 
 # Entry untuk memasukkan data
 session = st.text_input("Masukkan Session:")
